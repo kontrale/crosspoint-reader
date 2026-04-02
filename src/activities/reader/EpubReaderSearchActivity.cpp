@@ -7,17 +7,17 @@
 #include <algorithm>
 
 #include "activities/ActivityResult.h"
-#include "CrossPointSettings.h"
+#include "activities/util/KeyboardEntryActivity.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
 
 void EpubReaderSearchActivity::onEnter() {
   Activity::onEnter();
-  currentState = UIState::QUERY_INPUT;
   searchQuery.clear();
   searchResults.clear();
   selectedResultIndex = 0;
   LOG_DBG("SRCH", "Search activity entered");
+  launchKeyboardInput();
 }
 
 void EpubReaderSearchActivity::onExit() {
@@ -25,9 +25,29 @@ void EpubReaderSearchActivity::onExit() {
   LOG_DBG("SRCH", "Search activity exited");
 }
 
+void EpubReaderSearchActivity::launchKeyboardInput() {
+  startActivityForResult(
+      std::make_unique<KeyboardEntryActivity>(renderer, mappedInput, I18N.get(StrId::STR_SEARCH), "", 200),
+      [this](const ActivityResult& result) { onKeyboardResult(result); });
+}
+
+void EpubReaderSearchActivity::onKeyboardResult(const ActivityResult& result) {
+  if (result.isCancelled) {
+    // User cancelled keyboard input, close search activity
+    finish();
+    return;
+  }
+
+  const auto& kb = std::get<KeyboardResult>(result.data);
+  searchQuery = kb.text;
+  LOG_DBG("SRCH", "Got search query: '%s'", searchQuery.c_str());
+  performSearch();
+}
+
 void EpubReaderSearchActivity::performSearch() {
   if (searchQuery.empty()) {
-    currentState = UIState::QUERY_INPUT;
+    // Shouldn't happen, but handle gracefully
+    finish();
     return;
   }
 
@@ -42,118 +62,61 @@ void EpubReaderSearchActivity::performSearch() {
     selectedResultIndex = 0;
     LOG_DBG("SRCH", "Found %zu results", searchResults.size());
   }
+  requestUpdate();
 }
 
-void EpubReaderSearchActivity::selectResult() {
-  if (currentState == UIState::SHOWING_RESULTS && selectedResultIndex < searchResults.size()) {
-    const auto& result = searchResults[selectedResultIndex];
-    LOG_DBG("SRCH", "Navigating to spine %d, page %d", result.spineIndex, result.pageNumber);
-    setResult(SearchResultData{result.spineIndex, result.pageNumber});
-    finish();
-  }
+void EpubReaderSearchActivity::onResultSelected(const TextSearchEngine::SearchResult& result) {
+  LOG_DBG("SRCH", "Navigating to spine %d, page %d", result.spineIndex, result.pageNumber);
+  setResult(SearchResultData{result.spineIndex, result.pageNumber});
+  finish();
 }
 
 void EpubReaderSearchActivity::handleInput() {
-  using ButtonPress = MappedInputManager::ButtonPress;
-
-  auto buttons = mappedInput.getAndClearPresses();
-  if (buttons.empty()) {
-    return;
-  }
-
-  for (const auto& button : buttons) {
-    switch (currentState) {
-      case UIState::QUERY_INPUT: {
-        if (button == ButtonPress::LEFT || button == ButtonPress::BACK) {
-          // Close search without performing
-          finish();
-        } else if (button == ButtonPress::RIGHT || button == ButtonPress::CONFIRM) {
-          // Perform search with current query
-          performSearch();
-        } else if (button == ButtonPress::UP) {
-          // Delete last character from query
-          if (!searchQuery.empty()) {
-            searchQuery.pop_back();
-            requestUpdate();
-          }
-        }
-        // DOWN button could be used for character cycling in a full text input
-        // For now, search is triggered with RIGHT/CONFIRM
-        break;
-      }
-
-      case UIState::SHOWING_RESULTS: {
-        if (button == ButtonPress::UP) {
-          if (selectedResultIndex > 0) {
-            selectedResultIndex--;
-            requestUpdate();
-          }
-        } else if (button == ButtonPress::DOWN) {
-          if (selectedResultIndex < static_cast<int>(searchResults.size()) - 1) {
-            selectedResultIndex++;
-            requestUpdate();
-          }
-        } else if (button == ButtonPress::CONFIRM || button == ButtonPress::RIGHT) {
-          selectResult();
-        } else if (button == ButtonPress::BACK || button == ButtonPress::LEFT) {
-          // Return to query input
-          currentState = UIState::QUERY_INPUT;
+  switch (currentState) {
+    case UIState::SHOWING_RESULTS: {
+      if (mappedInput.wasReleased(MappedInputManager::Button::Up)) {
+        if (selectedResultIndex > 0) {
+          selectedResultIndex--;
           requestUpdate();
         }
-        break;
-      }
-
-      case UIState::EMPTY_RESULTS: {
-        if (button == ButtonPress::BACK || button == ButtonPress::LEFT) {
-          // Return to query input
-          currentState = UIState::QUERY_INPUT;
+      } else if (mappedInput.wasReleased(MappedInputManager::Button::Down)) {
+        if (selectedResultIndex < static_cast<int>(searchResults.size()) - 1) {
+          selectedResultIndex++;
           requestUpdate();
         }
-        break;
+      } else if (mappedInput.wasReleased(MappedInputManager::Button::Confirm)) {
+        onResultSelected(searchResults[selectedResultIndex]);
+      } else if (mappedInput.wasReleased(MappedInputManager::Button::Back)) {
+        // Close search results, go back to reader
+        finish();
       }
+      break;
+    }
+
+    case UIState::EMPTY_RESULTS: {
+      if (mappedInput.wasReleased(MappedInputManager::Button::Back)) {
+        // Close search, go back to reader
+        finish();
+      }
+      break;
     }
   }
 }
 
-void EpubReaderSearchActivity::renderQueryInput(RenderLock& lock) {
-  auto page = Page::create(renderer.getDisplayWidth(), renderer.getDisplayHeight());
-
-  // Title
-  int y = 20;
-  page->drawText(I18N.get(StrId::STR_SEARCH), 20, y, UITheme::getTheme().colorText, 2);
-  y += 40;
-
-  // Instructions
-  page->drawText("Enter search query:", 20, y, UITheme::getTheme().colorText, 0);
-  y += 25;
-
-  // Query input field (with simple text display)
-  std::string displayQuery = searchQuery;
-  if (displayQuery.empty()) {
-    displayQuery = "[Type here]";
-  }
-  page->drawText(displayQuery, 20, y, UITheme::getTheme().colorHighlight, 1);
-  y += 35;
-
-  // Instructions for navigation
-  page->drawText("UP: Delete char  RIGHT: Search  BACK: Cancel", 20, y, UITheme::getTheme().colorText, 0);
-
-  renderer.renderPage(std::move(page));
-}
-
 void EpubReaderSearchActivity::renderResults(RenderLock& lock) {
-  auto page = Page::create(renderer.getDisplayWidth(), renderer.getDisplayHeight());
+  renderer.clearScreen();
 
   // Title with result count
-  std::string title = "Search Results (" + std::to_string(searchResults.size()) + ")";
-  page->drawText(title, 20, 20, UITheme::getTheme().colorText, 2);
+  std::string title = "Results (" + std::to_string(searchResults.size()) + ")";
+  renderer.drawText(UI_12_FONT_ID, 20, 20, title.c_str(), true);
 
   // Search query reminder
-  page->drawText("Query: " + searchQuery, 20, 55, UITheme::getTheme().colorText, 0);
+  std::string queryLine = "Query: " + searchQuery;
+  renderer.drawText(UI_10_FONT_ID, 20, 55, queryLine.c_str(), false);
 
   int y = 85;
-  const int itemHeight = 65;
-  const int maxResults = (renderer.getDisplayHeight() - y - 40) / itemHeight;
+  constexpr int itemHeight = 45;
+  const int maxResults = (renderer.getScreenHeight() - y - 40) / itemHeight;
 
   // Display results
   for (int i = 0; i < std::min(static_cast<int>(searchResults.size()), maxResults); ++i) {
@@ -162,44 +125,36 @@ void EpubReaderSearchActivity::renderResults(RenderLock& lock) {
 
     // Draw selection highlight
     if (isSelected) {
-      page->fillRect(15, y - 5, renderer.getDisplayWidth() - 30, itemHeight - 10,
-                     UITheme::getTheme().colorHighlight);
+      renderer.fillRect(15, y - 5, renderer.getScreenWidth() - 30, itemHeight - 10, true);
     }
 
     // Draw location
     std::string location = searchEngine.getLocationString(result);
-    page->drawText(location, 25, y, isSelected ? UITheme::getTheme().colorBackground : UITheme::getTheme().colorText,
-                   0);
-
-    // Draw context (truncated)
-    std::string context = result.contextBefore + " " + result.matchText + " " + result.contextAfter;
-    if (context.length() > 50) {
-      context = context.substr(0, 47) + "...";
-    }
-    page->drawText(context, 25, y + 20, UITheme::getTheme().colorText, 0);
+    renderer.drawText(UI_10_FONT_ID, 25, y, location.c_str(), !isSelected);
 
     y += itemHeight;
   }
 
-  // Instructions
-  int bottomY = renderer.getDisplayHeight() - 30;
-  page->drawText("UP/DOWN: Navigate  CONFIRM: Jump to result  BACK: Edit query", 20, bottomY,
-                 UITheme::getTheme().colorText, 0);
+  const auto labels = mappedInput.mapLabels(tr(STR_BACK), tr(STR_SELECT), tr(STR_DIR_UP), tr(STR_DIR_DOWN));
+  GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
 
-  renderer.renderPage(std::move(page));
+  renderer.displayBuffer();
 }
 
 void EpubReaderSearchActivity::renderEmptyResults(RenderLock& lock) {
-  auto page = Page::create(renderer.getDisplayWidth(), renderer.getDisplayHeight());
+  renderer.clearScreen();
 
-  page->drawText("No Results", 20, 50, UITheme::getTheme().colorText, 2);
-  page->drawText("Query: " + searchQuery, 20, 100, UITheme::getTheme().colorText, 0);
-  page->drawText("No matches found. Try a different search term.", 20, 150, UITheme::getTheme().colorText, 0);
+  renderer.drawText(UI_12_FONT_ID, 20, 50, "No Results", true);
+  
+  std::string queryLine = "Query: " + searchQuery;
+  renderer.drawText(UI_10_FONT_ID, 20, 100, queryLine.c_str(), false);
+  
+  renderer.drawText(UI_10_FONT_ID, 20, 150, "No matches found.", false);
 
-  int bottomY = renderer.getDisplayHeight() - 30;
-  page->drawText("BACK: Edit query  LEFT: Close search", 20, bottomY, UITheme::getTheme().colorText, 0);
+  const auto labels = mappedInput.mapLabels(tr(STR_BACK), "", "", "");
+  GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
 
-  renderer.renderPage(std::move(page));
+  renderer.displayBuffer();
 }
 
 void EpubReaderSearchActivity::loop() {
@@ -208,9 +163,6 @@ void EpubReaderSearchActivity::loop() {
 
 void EpubReaderSearchActivity::render(RenderLock&& lock) {
   switch (currentState) {
-    case UIState::QUERY_INPUT:
-      renderQueryInput(lock);
-      break;
     case UIState::SHOWING_RESULTS:
       renderResults(lock);
       break;

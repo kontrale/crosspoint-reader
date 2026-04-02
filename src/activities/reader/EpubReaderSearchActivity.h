@@ -12,7 +12,7 @@
  * EpubReaderSearchActivity provides in-book search functionality.
  * 
  * Users can:
- * - Enter a search query (with text input)
+ * - Enter a search query (using the keyboard activity)
  * - View search results with chapter/page information
  * - Navigate between results
  * - Jump to a result location in the book
@@ -21,7 +21,7 @@ class EpubReaderSearchActivity final : public Activity {
  public:
   explicit EpubReaderSearchActivity(GfxRenderer& renderer, MappedInputManager& mappedInput,
                                     const std::shared_ptr<Epub>& epub)
-      : Activity("EpubReaderSearch", renderer, mappedInput), epub(epub), searchEngine(epub) {}
+      : Activity("EpubReaderSearch", renderer, mappedInput), epub(epub), searchEngine(epub, renderer) {}
 
   void onEnter() override;
   void onExit() override;
@@ -30,14 +30,13 @@ class EpubReaderSearchActivity final : public Activity {
 
  private:
   enum class UIState {
-    QUERY_INPUT,      // User is typing search query
     SHOWING_RESULTS,  // Showing list of results
     EMPTY_RESULTS     // No results found
   };
 
   std::shared_ptr<Epub> epub;
 
-  UIState currentState = UIState::QUERY_INPUT;
+  UIState currentState = UIState::EMPTY_RESULTS;
   std::string searchQuery;
   std::vector<TextSearchEngine::SearchResult> searchResults;
   int selectedResultIndex = 0;
@@ -48,11 +47,6 @@ class EpubReaderSearchActivity final : public Activity {
    * Perform the actual search with current query
    */
   void performSearch();
-
-  /**
-   * Render the query input screen
-   */
-  void renderQueryInput(RenderLock& lock);
 
   /**
    * Render the results list
@@ -70,7 +64,17 @@ class EpubReaderSearchActivity final : public Activity {
   void handleInput();
 
   /**
-   * Navigate to selected result and close activity
+   * Launch the keyboard activity for text input
    */
-  void selectResult();
+  void launchKeyboardInput();
+
+  /**
+   * Handle result from keyboard activity
+   */
+  void onKeyboardResult(const ActivityResult& result);
+
+  /**
+   * Handle result from search result selection
+   */
+  void onResultSelected(const TextSearchEngine::SearchResult& result);
 };

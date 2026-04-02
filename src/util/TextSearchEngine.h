@@ -1,11 +1,14 @@
 #pragma once
 
 #include <Epub.h>
+#include <GfxRenderer.h>
 #include <memory>
 #include <string>
 #include <vector>
 #include <algorithm>
 #include <cctype>
+
+class GfxRenderer;
 
 /**
  * TextSearchEngine provides lightweight search functionality for EPUB content.
@@ -26,7 +29,8 @@ class TextSearchEngine {
     std::string contextAfter;   // Text after match (up to 50 chars)
   };
 
-  explicit TextSearchEngine(const std::shared_ptr<Epub>& epub) : epub(epub) {}
+  explicit TextSearchEngine(const std::shared_ptr<Epub>& epub, GfxRenderer& renderer)
+      : epub(epub), renderer(renderer) {}
   
   /**
    * Search for a query string within the book.
@@ -45,6 +49,7 @@ class TextSearchEngine {
 
  private:
   std::shared_ptr<Epub> epub;
+  GfxRenderer& renderer;
 
   /**
    * Normalize text for comparison (lowercase, trim)

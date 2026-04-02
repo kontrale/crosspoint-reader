@@ -15,7 +15,6 @@ void EpubReaderSearchActivity::onEnter() {
   Activity::onEnter();
   searchQuery.clear();
   searchResults.clear();
-  resultSnippets.clear();
   selectedResultIndex = 0;
   searchPerformed = false;
   LOG_DBG("SRCH", "Search activity entered");
@@ -46,6 +45,7 @@ void EpubReaderSearchActivity::onKeyboardResult(const ActivityResult& result) {
   
   // Show searching state before performing potentially slow search
   currentState = UIState::SEARCHING;
+  waitForConfirmRelease = true;  // Wait for Confirm to be fully released before accepting input
   requestUpdate();
 }
 
@@ -58,7 +58,6 @@ void EpubReaderSearchActivity::performSearch() {
 
   LOG_INF("SRCH", "Performing search for: '%s'", searchQuery.c_str());
   searchResults = searchEngine.search(searchQuery, currentSpineIndex);
-  resultSnippets.clear();
 
   if (searchResults.empty()) {
     currentState = UIState::EMPTY_RESULTS;
@@ -67,24 +66,6 @@ void EpubReaderSearchActivity::performSearch() {
     currentState = UIState::SHOWING_RESULTS;
     selectedResultIndex = 0;
     LOG_DBG("SRCH", "Found %zu results", searchResults.size());
-    
-    // Pre-compute formatted snippets to avoid string operations during rendering
-    for (const auto& result : searchResults) {
-      std::string snippet = result.contextBefore + result.matchText + result.contextAfter;
-      
-      // Truncate snippet to reasonable length (about 60 chars for display)
-      constexpr size_t maxSnippetLen = 60;
-      if (snippet.length() > maxSnippetLen) {
-        snippet = snippet.substr(0, maxSnippetLen) + "...";
-      }
-      
-      // Replace newlines with spaces for single-line display
-      for (auto& c : snippet) {
-        if (c == '\n') c = ' ';
-      }
-      
-      resultSnippets.push_back(snippet);
-    }
   }
   
   requestUpdate();
@@ -97,6 +78,14 @@ void EpubReaderSearchActivity::onResultSelected(const TextSearchEngine::SearchRe
 }
 
 void EpubReaderSearchActivity::handleInput() {
+  // Wait until Confirm is physically released before accepting any input
+  if (waitForConfirmRelease) {
+    if (!mappedInput.isPressed(MappedInputManager::Button::Confirm)) {
+      waitForConfirmRelease = false;
+    }
+    return;
+  }
+  
   switch (currentState) {
     case UIState::SEARCHING: {
       // Allow user to cancel search with Back button
@@ -148,29 +137,32 @@ void EpubReaderSearchActivity::renderResults(RenderLock& lock) {
   renderer.drawText(UI_10_FONT_ID, 20, 55, queryLine.c_str(), false);
 
   int y = 85;
-  constexpr int itemHeight = 60;  // Increased to accommodate snippet
-  const int maxResults = (renderer.getScreenHeight() - y - 40) / itemHeight;
+  constexpr int itemHeight = 40;
+  const int maxVisible = (renderer.getScreenHeight() - y - 40) / itemHeight;
 
-  // Display results
-  for (int i = 0; i < std::min(static_cast<int>(searchResults.size()), maxResults); ++i) {
+  // Scroll: keep selectedResultIndex visible
+  const int firstVisible = std::max(0, std::min(selectedResultIndex - maxVisible + 1,
+                                                 static_cast<int>(searchResults.size()) - maxVisible));
+  const int lastVisible = std::min(firstVisible + maxVisible, static_cast<int>(searchResults.size()));
+
+  for (int i = firstVisible; i < lastVisible; ++i) {
     const auto& result = searchResults[i];
     bool isSelected = (i == selectedResultIndex);
 
-    // Draw selection highlight
     if (isSelected) {
       renderer.fillRect(15, y - 5, renderer.getScreenWidth() - 30, itemHeight - 10, true);
     }
 
-    // Draw location
     std::string location = searchEngine.getLocationString(result);
     renderer.drawText(UI_10_FONT_ID, 25, y, location.c_str(), !isSelected);
 
-    // Draw pre-computed text snippet
-    if (i < resultSnippets.size()) {
-      renderer.drawText(SMALL_FONT_ID, 25, y + 18, resultSnippets[i].c_str(), !isSelected);
-    }
-
     y += itemHeight;
+  }
+
+  // Scroll indicator: show position if list is longer than screen
+  if (static_cast<int>(searchResults.size()) > maxVisible) {
+    std::string indicator = std::to_string(selectedResultIndex + 1) + "/" + std::to_string(searchResults.size());
+    renderer.drawText(SMALL_FONT_ID, renderer.getScreenWidth() - 60, 20, indicator.c_str(), false);
   }
 
   const auto labels = mappedInput.mapLabels(tr(STR_BACK), tr(STR_SELECT), tr(STR_DIR_UP), tr(STR_DIR_DOWN));

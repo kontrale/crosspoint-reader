@@ -107,31 +107,24 @@ std::vector<TextSearchEngine::SearchResult> TextSearchEngine::search(const std::
       std::string pageText = extractTextFromPage(page);
       std::string normalizedPageText = normalize(pageText);
 
-      // Search for all occurrences of the query in this page
-      size_t pos = 0;
-      while ((pos = normalizedPageText.find(normalizedQuery, pos)) != std::string::npos) {
+      // Search for first occurrence of the query in this page (one result per page)
+      size_t pos = normalizedPageText.find(normalizedQuery);
+      if (pos != std::string::npos) {
         LOG_DBG("SEARCH", "Found match in spine %d, page %d at position %zu", spineIndex, pageNumber, pos);
 
-        // Build a SearchResult with context
         SearchResult result;
         result.spineIndex = spineIndex;
         result.pageNumber = pageNumber;
 
-        // Extract context (50 characters before and after)
-        const int CONTEXT_LENGTH = 50;
+        const int CONTEXT_LENGTH = 80;
         result.contextBefore = extractContext(pageText, pos, true, CONTEXT_LENGTH);
         result.contextAfter = extractContext(pageText, pos + query.length(), false, CONTEXT_LENGTH);
-        result.matchText = query;
+        result.matchText = pageText.substr(pos, query.length());  // Use actual cased text from the page
 
         results.push_back(result);
 
-        // Move position forward to find next occurrence
-        pos += normalizedQuery.length();
-
-        // Limit results to prevent memory issues on constrained hardware
         if (results.size() >= 100) {
           LOG_INF("SEARCH", "Limiting search results to 100 matches");
-          LOG_INF("SEARCH", "Search completed, found %zu results (capped)", results.size());
           return results;
         }
       }

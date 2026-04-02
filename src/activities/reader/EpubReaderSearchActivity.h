@@ -42,9 +42,9 @@ class EpubReaderSearchActivity final : public Activity {
   UIState currentState = UIState::EMPTY_RESULTS;
   std::string searchQuery;
   std::vector<TextSearchEngine::SearchResult> searchResults;
-  std::vector<std::string> resultSnippets;  // Pre-formatted snippets for rendering
   int selectedResultIndex = 0;
   bool searchPerformed = false;  // Track if search has been executed
+  bool waitForConfirmRelease = false;  // Wait for Confirm button to be physically released before accepting input
 
   TextSearchEngine searchEngine;
 

@@ -305,6 +305,11 @@ void EpubReaderActivity::onReaderMenuConfirm(EpubReaderMenuActivity::MenuAction 
             if (!result.isCancelled) {
               const auto& searchResult = std::get<SearchResultData>(result.data);
               RenderLock lock(*this);
+              // Save pre-search position so Back restores it (reuses footnote stack)
+              if (section && footnoteDepth < MAX_FOOTNOTE_DEPTH) {
+                savedPositions[footnoteDepth] = {currentSpineIndex, section->currentPage};
+                footnoteDepth++;
+              }
               currentSpineIndex = searchResult.spineIndex;
               nextPageNumber = searchResult.pageNumber;
               section.reset();

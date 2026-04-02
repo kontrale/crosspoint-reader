@@ -15,6 +15,7 @@
 #include "EpubReaderChapterSelectionActivity.h"
 #include "EpubReaderFootnotesActivity.h"
 #include "EpubReaderPercentSelectionActivity.h"
+#include "EpubReaderSearchActivity.h"
 #include "KOReaderCredentialStore.h"
 #include "KOReaderSyncActivity.h"
 #include "MappedInputManager.h"
@@ -293,6 +294,21 @@ void EpubReaderActivity::onReaderMenuConfirm(EpubReaderMenuActivity::MenuAction 
               currentSpineIndex = std::get<ChapterResult>(result.data).spineIndex;
               nextPageNumber = 0;
               section.reset();
+            }
+          });
+      break;
+    }
+    case EpubReaderMenuActivity::MenuAction::SEARCH: {
+      startActivityForResult(
+          std::make_unique<EpubReaderSearchActivity>(renderer, mappedInput, epub),
+          [this](const ActivityResult& result) {
+            if (!result.isCancelled) {
+              const auto& searchResult = std::get<SearchResultData>(result.data);
+              RenderLock lock(*this);
+              currentSpineIndex = searchResult.spineIndex;
+              nextPageNumber = searchResult.pageNumber;
+              section.reset();
+              requestUpdate();
             }
           });
       break;

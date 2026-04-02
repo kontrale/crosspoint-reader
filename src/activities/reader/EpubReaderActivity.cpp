@@ -300,7 +300,7 @@ void EpubReaderActivity::onReaderMenuConfirm(EpubReaderMenuActivity::MenuAction 
     }
     case EpubReaderMenuActivity::MenuAction::SEARCH: {
       startActivityForResult(
-          std::make_unique<EpubReaderSearchActivity>(renderer, mappedInput, epub),
+          std::make_unique<EpubReaderSearchActivity>(renderer, mappedInput, epub, currentSpineIndex),
           [this](const ActivityResult& result) {
             if (!result.isCancelled) {
               const auto& searchResult = std::get<SearchResultData>(result.data);

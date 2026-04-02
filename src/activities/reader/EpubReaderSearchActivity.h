@@ -20,8 +20,9 @@
 class EpubReaderSearchActivity final : public Activity {
  public:
   explicit EpubReaderSearchActivity(GfxRenderer& renderer, MappedInputManager& mappedInput,
-                                    const std::shared_ptr<Epub>& epub)
-      : Activity("EpubReaderSearch", renderer, mappedInput), epub(epub), searchEngine(epub, renderer) {}
+                                    const std::shared_ptr<Epub>& epub, int currentSpineIdx = 0)
+      : Activity("EpubReaderSearch", renderer, mappedInput), epub(epub), searchEngine(epub, renderer),
+        currentSpineIndex(currentSpineIdx) {}
 
   void onEnter() override;
   void onExit() override;
@@ -30,16 +31,20 @@ class EpubReaderSearchActivity final : public Activity {
 
  private:
   enum class UIState {
-    SHOWING_RESULTS,  // Showing list of results
-    EMPTY_RESULTS     // No results found
+    SEARCHING,         // Search in progress
+    SHOWING_RESULTS,   // Showing list of results
+    EMPTY_RESULTS      // No results found
   };
 
   std::shared_ptr<Epub> epub;
+  int currentSpineIndex = 0;  // Start search from current chapter
 
   UIState currentState = UIState::EMPTY_RESULTS;
   std::string searchQuery;
   std::vector<TextSearchEngine::SearchResult> searchResults;
+  std::vector<std::string> resultSnippets;  // Pre-formatted snippets for rendering
   int selectedResultIndex = 0;
+  bool searchPerformed = false;  // Track if search has been executed
 
   TextSearchEngine searchEngine;
 
@@ -47,6 +52,11 @@ class EpubReaderSearchActivity final : public Activity {
    * Perform the actual search with current query
    */
   void performSearch();
+
+  /**
+   * Render searching in progress message
+   */
+  void renderSearching(RenderLock& lock);
 
   /**
    * Render the results list

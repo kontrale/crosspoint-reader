@@ -37,9 +37,10 @@ class TextSearchEngine {
    * Returns all matching results found.
    * 
    * @param query Search text (case-insensitive)
+   * @param startSpineIndex Starting spine index (searches from current chapter first for speed)
    * @return Vector of search results
    */
-  std::vector<SearchResult> search(const std::string& query);
+  std::vector<SearchResult> search(const std::string& query, int startSpineIndex = 0);
 
   /**
    * Get human-readable location string for a result

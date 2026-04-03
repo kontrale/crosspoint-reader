@@ -5,6 +5,8 @@
 #include "boot_sleep/BootActivity.h"
 #include "boot_sleep/SleepActivity.h"
 #include "browser/OpdsBookBrowserActivity.h"
+#include "home/CollectionListActivity.h"
+#include "home/CollectionViewActivity.h"
 #include "home/FileBrowserActivity.h"
 #include "home/HomeActivity.h"
 #include "home/RecentBooksActivity.h"
@@ -175,6 +177,14 @@ void ActivityManager::goToFileBrowser(std::string path) {
 
 void ActivityManager::goToRecentBooks() {
   replaceActivity(std::make_unique<RecentBooksActivity>(renderer, mappedInput));
+}
+
+void ActivityManager::goToCollections() {
+  replaceActivity(std::make_unique<CollectionListActivity>(renderer, mappedInput));
+}
+
+void ActivityManager::goToCollectionView(const std::string& collectionId) {
+  replaceActivity(std::make_unique<CollectionViewActivity>(renderer, mappedInput, collectionId));
 }
 
 void ActivityManager::goToBrowser() {

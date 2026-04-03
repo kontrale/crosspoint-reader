@@ -19,6 +19,7 @@
 #include "CrossPointState.h"
 #include "KOReaderCredentialStore.h"
 #include "MappedInputManager.h"
+#include "CollectionStore.h"
 #include "RecentBooksStore.h"
 #include "activities/Activity.h"
 #include "activities/ActivityManager.h"
@@ -111,6 +112,31 @@ EpdFont opendyslexic14ItalicFont(&opendyslexic_14_italic);
 EpdFont opendyslexic14BoldItalicFont(&opendyslexic_14_bolditalic);
 EpdFontFamily opendyslexic14FontFamily(&opendyslexic14RegularFont, &opendyslexic14BoldFont, &opendyslexic14ItalicFont,
                                        &opendyslexic14BoldItalicFont);
+
+EpdFont ubuntumono12RegularFont(&ubuntumono_12_regular);
+EpdFont ubuntumono12BoldFont(&ubuntumono_12_bold);
+EpdFont ubuntumono12ItalicFont(&ubuntumono_12_italic);
+EpdFont ubuntumono12BoldItalicFont(&ubuntumono_12_bolditalic);
+EpdFontFamily ubuntumono12FontFamily(&ubuntumono12RegularFont, &ubuntumono12BoldFont, &ubuntumono12ItalicFont,
+                                     &ubuntumono12BoldItalicFont);
+EpdFont ubuntumono14RegularFont(&ubuntumono_14_regular);
+EpdFont ubuntumono14BoldFont(&ubuntumono_14_bold);
+EpdFont ubuntumono14ItalicFont(&ubuntumono_14_italic);
+EpdFont ubuntumono14BoldItalicFont(&ubuntumono_14_bolditalic);
+EpdFontFamily ubuntumono14FontFamily(&ubuntumono14RegularFont, &ubuntumono14BoldFont, &ubuntumono14ItalicFont,
+                                     &ubuntumono14BoldItalicFont);
+EpdFont ubuntumono16RegularFont(&ubuntumono_16_regular);
+EpdFont ubuntumono16BoldFont(&ubuntumono_16_bold);
+EpdFont ubuntumono16ItalicFont(&ubuntumono_16_italic);
+EpdFont ubuntumono16BoldItalicFont(&ubuntumono_16_bolditalic);
+EpdFontFamily ubuntumono16FontFamily(&ubuntumono16RegularFont, &ubuntumono16BoldFont, &ubuntumono16ItalicFont,
+                                     &ubuntumono16BoldItalicFont);
+EpdFont ubuntumono18RegularFont(&ubuntumono_18_regular);
+EpdFont ubuntumono18BoldFont(&ubuntumono_18_bold);
+EpdFont ubuntumono18ItalicFont(&ubuntumono_18_italic);
+EpdFont ubuntumono18BoldItalicFont(&ubuntumono_18_bolditalic);
+EpdFontFamily ubuntumono18FontFamily(&ubuntumono18RegularFont, &ubuntumono18BoldFont, &ubuntumono18ItalicFont,
+                                     &ubuntumono18BoldItalicFont);
 #endif  // OMIT_FONTS
 
 EpdFont smallFont(&notosans_8_regular);
@@ -221,6 +247,10 @@ void setupDisplayAndFonts() {
   renderer.insertFont(OPENDYSLEXIC_10_FONT_ID, opendyslexic10FontFamily);
   renderer.insertFont(OPENDYSLEXIC_12_FONT_ID, opendyslexic12FontFamily);
   renderer.insertFont(OPENDYSLEXIC_14_FONT_ID, opendyslexic14FontFamily);
+  renderer.insertFont(UBUNTUMONO_12_FONT_ID, ubuntumono12FontFamily);
+  renderer.insertFont(UBUNTUMONO_14_FONT_ID, ubuntumono14FontFamily);
+  renderer.insertFont(UBUNTUMONO_16_FONT_ID, ubuntumono16FontFamily);
+  renderer.insertFont(UBUNTUMONO_18_FONT_ID, ubuntumono18FontFamily);
 #endif  // OMIT_FONTS
   renderer.insertFont(UI_10_FONT_ID, ui10FontFamily);
   renderer.insertFont(UI_12_FONT_ID, ui12FontFamily);
@@ -290,6 +320,7 @@ void setup() {
 
   APP_STATE.loadFromFile();
   RECENT_BOOKS.loadFromFile();
+  COLLECTIONS.loadFromFile();
 
   // Boot to home screen if no book is open, last sleep was not from reader, back button is held, or reader activity
   // crashed (indicated by readerActivityLoadCount > 0)

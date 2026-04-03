@@ -258,6 +258,16 @@ float CrossPointSettings::getReaderLineCompression() const {
         case WIDE:
           return 1.0f;
       }
+    case UBUNTUMONO:
+      switch (lineSpacing) {
+        case TIGHT:
+          return 0.90f;
+        case NORMAL:
+        default:
+          return 0.95f;
+        case WIDE:
+          return 1.0f;
+      }
   }
 }
 
@@ -331,6 +341,18 @@ int CrossPointSettings::getReaderFontId() const {
           return OPENDYSLEXIC_12_FONT_ID;
         case EXTRA_LARGE:
           return OPENDYSLEXIC_14_FONT_ID;
+      }
+    case UBUNTUMONO:
+      switch (fontSize) {
+        case SMALL:
+          return UBUNTUMONO_12_FONT_ID;
+        case MEDIUM:
+        default:
+          return UBUNTUMONO_14_FONT_ID;
+        case LARGE:
+          return UBUNTUMONO_16_FONT_ID;
+        case EXTRA_LARGE:
+          return UBUNTUMONO_18_FONT_ID;
       }
   }
 }

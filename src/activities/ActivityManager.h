@@ -82,6 +82,8 @@ class ActivityManager {
   void goToFileBrowser(std::string path = {});
   void goToRecentBooks();
   void goToBrowser();
+  void goToCollections();
+  void goToCollectionView(const std::string& collectionId);
   void goToReader(std::string path);
   void goToSleep();
   void goToBoot();

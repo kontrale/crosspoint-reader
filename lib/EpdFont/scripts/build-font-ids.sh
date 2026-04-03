@@ -116,6 +116,42 @@ ruby -rdigest -e 'puts [
 ].map{|f| Digest::SHA256.hexdigest(File.read(f)).to_i(16) }.sum % (2 ** 32) - (2 ** 31)'
 ))"
 
+echo "#define UBUNTUMONO_12_FONT_ID ($(
+ruby -rdigest -e 'puts [
+  "./ubuntumono_12_regular.h",
+  "./ubuntumono_12_bold.h",
+  "./ubuntumono_12_bolditalic.h",
+  "./ubuntumono_12_italic.h",
+].map{|f| Digest::SHA256.hexdigest(File.read(f)).to_i(16) }.sum % (2 ** 32) - (2 ** 31)'
+))"
+
+echo "#define UBUNTUMONO_14_FONT_ID ($(
+ruby -rdigest -e 'puts [
+  "./ubuntumono_14_regular.h",
+  "./ubuntumono_14_bold.h",
+  "./ubuntumono_14_bolditalic.h",
+  "./ubuntumono_14_italic.h",
+].map{|f| Digest::SHA256.hexdigest(File.read(f)).to_i(16) }.sum % (2 ** 32) - (2 ** 31)'
+))"
+
+echo "#define UBUNTUMONO_16_FONT_ID ($(
+ruby -rdigest -e 'puts [
+  "./ubuntumono_16_regular.h",
+  "./ubuntumono_16_bold.h",
+  "./ubuntumono_16_bolditalic.h",
+  "./ubuntumono_16_italic.h",
+].map{|f| Digest::SHA256.hexdigest(File.read(f)).to_i(16) }.sum % (2 ** 32) - (2 ** 31)'
+))"
+
+echo "#define UBUNTUMONO_18_FONT_ID ($(
+ruby -rdigest -e 'puts [
+  "./ubuntumono_18_regular.h",
+  "./ubuntumono_18_bold.h",
+  "./ubuntumono_18_bolditalic.h",
+  "./ubuntumono_18_italic.h",
+].map{|f| Digest::SHA256.hexdigest(File.read(f)).to_i(16) }.sum % (2 ** 32) - (2 ** 31)'
+))"
+
 echo "#define UI_10_FONT_ID ($(
 ruby -rdigest -e 'puts [
   "./ubuntu_10_regular.h",

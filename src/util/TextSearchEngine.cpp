@@ -49,7 +49,7 @@ static std::string extractTextFromPage(const std::unique_ptr<Page>& page) {
   for (const auto& element : page->elements) {
     if (element && element->getTag() == TAG_PageLine) {
       // Use static_cast since tag checking confirms type (RTTI disabled)
-      auto* pageLine = static_cast<PageLine*>(element.get());
+      const auto* pageLine = static_cast<const PageLine*>(element.get());
       const auto& textBlock = pageLine->getBlock();
       if (textBlock) {
         const auto& words = textBlock->getWords();

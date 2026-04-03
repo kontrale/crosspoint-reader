@@ -174,7 +174,7 @@ void CollectionViewActivity::render(RenderLock&&) {
             std::string name = (slash != std::string::npos) ? p.substr(slash + 1) : p;
             // Strip extension
             const size_t dot = name.find_last_of('.');
-            if (dot != std::string::npos) name = name.substr(0, dot);
+            if (dot != std::string::npos) name.resize(dot);
             return name;
           },
           nullptr, nullptr);

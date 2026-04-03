@@ -827,9 +827,12 @@ void GfxRenderer::invertScreen() const {
   }
 }
 
-void GfxRenderer::displayBuffer(const HalDisplay::RefreshMode refreshMode) const {
+void GfxRenderer::displayBuffer(const HalDisplay::RefreshMode refreshMode, const bool applyNightMode) const {
   auto elapsed = millis() - start_ms;
   LOG_DBG("GFX", "Time = %lu ms from clearScreen to displayBuffer", elapsed);
+  if (applyNightMode && nightMode) {
+    invertScreen();
+  }
   display.displayBuffer(refreshMode, fadingFix);
 }
 

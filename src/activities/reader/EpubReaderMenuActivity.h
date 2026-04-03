@@ -18,6 +18,7 @@ class EpubReaderMenuActivity final : public Activity {
     GO_TO_PERCENT,
     AUTO_PAGE_TURN,
     ROTATE_SCREEN,
+    NIGHT_MODE,
     SCREENSHOT,
     DISPLAY_QR,
     GO_HOME,
@@ -51,6 +52,7 @@ class EpubReaderMenuActivity final : public Activity {
   ButtonNavigator buttonNavigator;
   std::string title = "Reader Menu";
   uint8_t pendingOrientation = 0;
+  uint8_t pendingNightMode = 0;
   uint8_t selectedPageTurnOption = 0;
   const std::vector<StrId> orientationLabels = {StrId::STR_PORTRAIT, StrId::STR_LANDSCAPE_CW, StrId::STR_INVERTED,
                                                 StrId::STR_LANDSCAPE_CCW};

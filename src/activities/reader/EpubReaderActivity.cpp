@@ -158,10 +158,14 @@ void EpubReaderActivity::loop() {
                                renderer, mappedInput, epub->getTitle(), currentPage, totalPages, bookProgressPercent,
                                SETTINGS.orientation, !currentPageFootnotes.empty()),
                            [this](const ActivityResult& result) {
-                             // Always apply orientation change even if the menu was cancelled
+                             // Always apply orientation and night mode changes even if the menu was cancelled
                              const auto& menu = std::get<MenuResult>(result.data);
                              applyOrientation(menu.orientation);
                              toggleAutoPageTurn(menu.pageTurnOption);
+                             if (SETTINGS.nightMode != menu.nightMode) {
+                               SETTINGS.nightMode = menu.nightMode;
+                               SETTINGS.saveToFile();
+                             }
                              if (!result.isCancelled) {
                                onReaderMenuConfirm(static_cast<EpubReaderMenuActivity::MenuAction>(menu.action));
                              }
@@ -434,6 +438,11 @@ void EpubReaderActivity::onReaderMenuConfirm(EpubReaderMenuActivity::MenuAction 
       startActivityForResult(
           std::make_unique<ReadingStatsActivity>(renderer, mappedInput, epub->getTitle(), epub->getCachePath()),
           [this](const ActivityResult&) { requestUpdate(); });
+      break;
+    }
+    case EpubReaderMenuActivity::MenuAction::NIGHT_MODE: {
+      // Night mode was already committed in the menu callback; just re-render.
+      requestUpdate();
       break;
     }
   }

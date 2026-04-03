@@ -16,16 +16,16 @@
 #include "EpubReaderFootnotesActivity.h"
 #include "EpubReaderPercentSelectionActivity.h"
 #include "EpubReaderSearchActivity.h"
-#include "ReadingStatsActivity.h"
-#include "util/ReadingStatsStore.h"
 #include "KOReaderCredentialStore.h"
 #include "KOReaderSyncActivity.h"
 #include "MappedInputManager.h"
 #include "QrDisplayActivity.h"
 #include "ReaderUtils.h"
+#include "ReadingStatsActivity.h"
 #include "RecentBooksStore.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
+#include "util/ReadingStatsStore.h"
 #include "util/ScreenshotUtil.h"
 
 namespace {
@@ -311,23 +311,22 @@ void EpubReaderActivity::onReaderMenuConfirm(EpubReaderMenuActivity::MenuAction 
       break;
     }
     case EpubReaderMenuActivity::MenuAction::SEARCH: {
-      startActivityForResult(
-          std::make_unique<EpubReaderSearchActivity>(renderer, mappedInput, epub, currentSpineIndex),
-          [this](const ActivityResult& result) {
-            if (!result.isCancelled) {
-              const auto& searchResult = std::get<SearchResultData>(result.data);
-              RenderLock lock(*this);
-              // Save pre-search position so Back restores it (reuses footnote stack)
-              if (section && footnoteDepth < MAX_FOOTNOTE_DEPTH) {
-                savedPositions[footnoteDepth] = {currentSpineIndex, section->currentPage};
-                footnoteDepth++;
-              }
-              currentSpineIndex = searchResult.spineIndex;
-              nextPageNumber = searchResult.pageNumber;
-              section.reset();
-              requestUpdate();
-            }
-          });
+      startActivityForResult(std::make_unique<EpubReaderSearchActivity>(renderer, mappedInput, epub, currentSpineIndex),
+                             [this](const ActivityResult& result) {
+                               if (!result.isCancelled) {
+                                 const auto& searchResult = std::get<SearchResultData>(result.data);
+                                 RenderLock lock(*this);
+                                 // Save pre-search position so Back restores it (reuses footnote stack)
+                                 if (section && footnoteDepth < MAX_FOOTNOTE_DEPTH) {
+                                   savedPositions[footnoteDepth] = {currentSpineIndex, section->currentPage};
+                                   footnoteDepth++;
+                                 }
+                                 currentSpineIndex = searchResult.spineIndex;
+                                 nextPageNumber = searchResult.pageNumber;
+                                 section.reset();
+                                 requestUpdate();
+                               }
+                             });
       break;
     }
     case EpubReaderMenuActivity::MenuAction::FOOTNOTES: {

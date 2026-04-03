@@ -1,11 +1,12 @@
 #include "TextSearchEngine.h"
 
-#include <Logging.h>
-#include <Epub/Section.h>
 #include <Epub/Page.h>
+#include <Epub/Section.h>
 #include <Epub/blocks/TextBlock.h>
-#include <cctype>
+#include <Logging.h>
+
 #include <algorithm>
+#include <cctype>
 #include <cstring>
 
 std::string TextSearchEngine::normalize(const std::string& text) {
@@ -16,8 +17,7 @@ std::string TextSearchEngine::normalize(const std::string& text) {
   return result;
 }
 
-std::string TextSearchEngine::extractContext(const std::string& text, size_t matchPos, bool before,
-                                               int contextLength) {
+std::string TextSearchEngine::extractContext(const std::string& text, size_t matchPos, bool before, int contextLength) {
   if (before) {
     // Extract context before the match
     int startPos = std::max(0, static_cast<int>(matchPos) - contextLength);
@@ -64,12 +64,11 @@ static std::string extractTextFromPage(const std::unique_ptr<Page>& page) {
     }
     // Skip PageImage elements for text search
   }
-  
+
   return pageText;
 }
 
-std::vector<TextSearchEngine::SearchResult> TextSearchEngine::search(const std::string& query,
-                                                                      int startSpineIndex) {
+std::vector<TextSearchEngine::SearchResult> TextSearchEngine::search(const std::string& query, int startSpineIndex) {
   std::vector<SearchResult> results;
 
   if (!epub || query.empty()) {
@@ -78,7 +77,7 @@ std::vector<TextSearchEngine::SearchResult> TextSearchEngine::search(const std::
 
   std::string normalizedQuery = normalize(query);
   int spineCount = epub->getSpineItemsCount();
-  
+
   // Clamp startSpineIndex to valid range
   startSpineIndex = std::max(0, std::min(startSpineIndex, spineCount - 1));
 
@@ -89,7 +88,7 @@ std::vector<TextSearchEngine::SearchResult> TextSearchEngine::search(const std::
   for (int i = 0; i < spineCount; ++i) {
     int spineIndex = (startSpineIndex + i) % spineCount;
     LOG_DBG("SEARCH", "Creating section for spine index %d", spineIndex);
-    
+
     auto section = std::make_unique<Section>(epub, spineIndex, renderer);
 
     LOG_DBG("SEARCH", "Searching spine index %d", spineIndex);
@@ -102,7 +101,7 @@ std::vector<TextSearchEngine::SearchResult> TextSearchEngine::search(const std::
     std::unique_ptr<Page> page;
     while ((page = section->loadPageFromSectionFile()) != nullptr && pagesChecked < MAX_PAGES_PER_SECTION) {
       pagesChecked++;
-      
+
       // Extract all text from this page
       std::string pageText = extractTextFromPage(page);
       std::string normalizedPageText = normalize(pageText);
@@ -131,9 +130,9 @@ std::vector<TextSearchEngine::SearchResult> TextSearchEngine::search(const std::
 
       pageNumber++;
     }
-    
+
     LOG_DBG("SEARCH", "Finished spine %d, checked %d pages", spineIndex, pagesChecked);
-    
+
     // If no pages were loaded, section files don't exist yet - stop searching
     // (user probably hasn't read this chapter yet)
     if (pagesChecked == 0) {

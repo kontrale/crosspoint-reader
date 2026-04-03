@@ -2,6 +2,7 @@
 
 #include <GfxRenderer.h>
 #include <I18n.h>
+
 #include <cstdio>
 
 #include "MappedInputManager.h"
@@ -44,8 +45,8 @@ void ReadingStatsActivity::render(RenderLock&&) {
   const auto& metrics = UITheme::getInstance().getMetrics();
   const int pageWidth = renderer.getScreenWidth();
 
-  GUI.drawHeader(renderer, Rect{0, metrics.topPadding, pageWidth, metrics.headerHeight},
-                 tr(STR_READING_STATS), nullptr);
+  GUI.drawHeader(renderer, Rect{0, metrics.topPadding, pageWidth, metrics.headerHeight}, tr(STR_READING_STATS),
+                 nullptr);
 
   const ReadingStatsStore& store = ReadingStatsStore::getInstance();
   const auto& book = store.getBookStats();
@@ -77,8 +78,7 @@ void ReadingStatsActivity::render(RenderLock&&) {
 
   {
     char buf[80];
-    snprintf(buf, sizeof(buf), "%s  |  %lu pages  |  %u sessions",
-             formatDuration(book.totalSecondsRead).c_str(),
+    snprintf(buf, sizeof(buf), "%s  |  %lu pages  |  %u sessions", formatDuration(book.totalSecondsRead).c_str(),
              static_cast<unsigned long>(book.totalPagesRead), book.sessionsCount);
     renderer.drawText(UI_10_FONT_ID, x + 10, y, buf, true);
   }
@@ -92,10 +92,8 @@ void ReadingStatsActivity::render(RenderLock&&) {
 
   {
     char buf[80];
-    snprintf(buf, sizeof(buf), "%s  |  %lu pages  |  %lu sessions",
-             formatDuration(global.totalSecondsRead).c_str(),
-             static_cast<unsigned long>(global.totalPagesRead),
-             static_cast<unsigned long>(global.totalSessions));
+    snprintf(buf, sizeof(buf), "%s  |  %lu pages  |  %lu sessions", formatDuration(global.totalSecondsRead).c_str(),
+             static_cast<unsigned long>(global.totalPagesRead), static_cast<unsigned long>(global.totalSessions));
     renderer.drawText(UI_10_FONT_ID, x + 10, y, buf, true);
   }
   y += lineHeight + sectionGap;

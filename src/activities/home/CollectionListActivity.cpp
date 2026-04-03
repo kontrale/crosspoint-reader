@@ -28,17 +28,16 @@ void CollectionListActivity::openSelected() {
 }
 
 void CollectionListActivity::promptNewCollection() {
-  startActivityForResult(
-      std::make_unique<KeyboardEntryActivity>(renderer, mappedInput, tr(STR_NEW_COLLECTION), "", 80),
-      [this](const ActivityResult& result) {
-        if (result.isCancelled) return;
-        const auto& kb = std::get<KeyboardResult>(result.data);
-        if (kb.text.empty()) return;
-        COLLECTIONS.createCollection(kb.text);
-        const auto& cols = COLLECTIONS.getCollections();
-        selectorIndex = static_cast<int>(cols.size()) - 1;
-        requestUpdate();
-      });
+  startActivityForResult(std::make_unique<KeyboardEntryActivity>(renderer, mappedInput, tr(STR_NEW_COLLECTION), "", 80),
+                         [this](const ActivityResult& result) {
+                           if (result.isCancelled) return;
+                           const auto& kb = std::get<KeyboardResult>(result.data);
+                           if (kb.text.empty()) return;
+                           COLLECTIONS.createCollection(kb.text);
+                           const auto& cols = COLLECTIONS.getCollections();
+                           selectorIndex = static_cast<int>(cols.size()) - 1;
+                           requestUpdate();
+                         });
 }
 
 void CollectionListActivity::deleteSelected() {
@@ -109,8 +108,7 @@ void CollectionListActivity::render(RenderLock&&) {
   const int pageWidth = renderer.getScreenWidth();
   const int pageHeight = renderer.getScreenHeight();
 
-  GUI.drawHeader(renderer, Rect{0, metrics.topPadding, pageWidth, metrics.headerHeight}, tr(STR_COLLECTIONS),
-                 nullptr);
+  GUI.drawHeader(renderer, Rect{0, metrics.topPadding, pageWidth, metrics.headerHeight}, tr(STR_COLLECTIONS), nullptr);
 
   const int contentTop = metrics.topPadding + metrics.headerHeight + metrics.verticalSpacing;
   const int contentHeight = pageHeight - contentTop - metrics.buttonHintsHeight - metrics.verticalSpacing;
@@ -120,13 +118,9 @@ void CollectionListActivity::render(RenderLock&&) {
     renderer.drawText(UI_10_FONT_ID, metrics.contentSidePadding, contentTop + 20, tr(STR_NO_COLLECTIONS));
   } else {
     GUI.drawList(
-        renderer, Rect{0, contentTop, pageWidth, contentHeight},
-        static_cast<int>(cols.size()), selectorIndex,
+        renderer, Rect{0, contentTop, pageWidth, contentHeight}, static_cast<int>(cols.size()), selectorIndex,
         [&cols](int i) { return cols[i].name; },
-        [&cols](int i) {
-          return std::to_string(static_cast<int>(cols[i].bookPaths.size())) + " books";
-        },
-        nullptr);
+        [&cols](int i) { return std::to_string(static_cast<int>(cols[i].bookPaths.size())) + " books"; }, nullptr);
   }
 
   const auto labels = mappedInput.mapLabels(tr(STR_HOME), tr(STR_SELECT), tr(STR_NEW_COLLECTION), tr(STR_DIR_UP));

@@ -19,7 +19,7 @@ class CollectionStore {
   CollectionStore& operator=(const CollectionStore&) = delete;
 
   struct Collection {
-    std::string id;    // unique string ID (numeric timestamp as string)
+    std::string id;  // unique string ID (numeric timestamp as string)
     std::string name;
     std::vector<std::string> bookPaths;  // SD paths, e.g. "/books/foo.epub"
   };
@@ -30,7 +30,7 @@ class CollectionStore {
   int getCount() const { return static_cast<int>(_collections.size()); }
 
   // Mutation (each saves automatically)
-  std::string createCollection(const std::string& name);          // returns new collection ID
+  std::string createCollection(const std::string& name);  // returns new collection ID
   void deleteCollection(const std::string& id);
   void addBook(const std::string& collectionId, const std::string& bookPath);
   void removeBook(const std::string& collectionId, const std::string& bookPath);

@@ -99,7 +99,7 @@ void CollectionStore::loadFromFile() {
 
   for (JsonObject obj : doc["collections"].as<JsonArray>()) {
     Collection c;
-    c.id   = obj["id"]   | std::string("");
+    c.id = obj["id"] | std::string("");
     c.name = obj["name"] | std::string("");
     if (c.id.empty() || c.name.empty()) continue;
     for (const char* path : obj["books"].as<JsonArray>()) {

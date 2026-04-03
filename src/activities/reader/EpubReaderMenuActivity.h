@@ -13,6 +13,7 @@ class EpubReaderMenuActivity final : public Activity {
   // Menu actions available from the reader menu.
   enum class MenuAction {
     SELECT_CHAPTER,
+    SEARCH,
     FOOTNOTES,
     GO_TO_PERCENT,
     AUTO_PAGE_TURN,
@@ -21,7 +22,8 @@ class EpubReaderMenuActivity final : public Activity {
     DISPLAY_QR,
     GO_HOME,
     SYNC,
-    DELETE_CACHE
+    DELETE_CACHE,
+    READING_STATS
   };
 
   explicit EpubReaderMenuActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, const std::string& title,

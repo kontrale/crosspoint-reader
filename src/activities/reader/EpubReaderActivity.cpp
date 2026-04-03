@@ -15,6 +15,9 @@
 #include "EpubReaderChapterSelectionActivity.h"
 #include "EpubReaderFootnotesActivity.h"
 #include "EpubReaderPercentSelectionActivity.h"
+#include "EpubReaderSearchActivity.h"
+#include "ReadingStatsActivity.h"
+#include "util/ReadingStatsStore.h"
 #include "KOReaderCredentialStore.h"
 #include "KOReaderSyncActivity.h"
 #include "MappedInputManager.h"
@@ -86,12 +89,18 @@ void EpubReaderActivity::onEnter() {
   APP_STATE.saveToFile();
   RECENT_BOOKS.addBook(epub->getPath(), epub->getTitle(), epub->getAuthor(), epub->getThumbBmpPath());
 
+  // Begin reading session tracking
+  ReadingStatsStore::getInstance().beginSession(epub->getCachePath());
+
   // Trigger first update
   requestUpdate();
 }
 
 void EpubReaderActivity::onExit() {
   Activity::onExit();
+
+  // End reading session and persist stats
+  ReadingStatsStore::getInstance().endSession();
 
   // Reset orientation back to portrait for the rest of the UI
   renderer.setOrientation(GfxRenderer::Orientation::Portrait);
@@ -297,6 +306,26 @@ void EpubReaderActivity::onReaderMenuConfirm(EpubReaderMenuActivity::MenuAction 
           });
       break;
     }
+    case EpubReaderMenuActivity::MenuAction::SEARCH: {
+      startActivityForResult(
+          std::make_unique<EpubReaderSearchActivity>(renderer, mappedInput, epub, currentSpineIndex),
+          [this](const ActivityResult& result) {
+            if (!result.isCancelled) {
+              const auto& searchResult = std::get<SearchResultData>(result.data);
+              RenderLock lock(*this);
+              // Save pre-search position so Back restores it (reuses footnote stack)
+              if (section && footnoteDepth < MAX_FOOTNOTE_DEPTH) {
+                savedPositions[footnoteDepth] = {currentSpineIndex, section->currentPage};
+                footnoteDepth++;
+              }
+              currentSpineIndex = searchResult.spineIndex;
+              nextPageNumber = searchResult.pageNumber;
+              section.reset();
+              requestUpdate();
+            }
+          });
+      break;
+    }
     case EpubReaderMenuActivity::MenuAction::FOOTNOTES: {
       startActivityForResult(std::make_unique<EpubReaderFootnotesActivity>(renderer, mappedInput, currentPageFootnotes),
                              [this](const ActivityResult& result) {
@@ -401,6 +430,12 @@ void EpubReaderActivity::onReaderMenuConfirm(EpubReaderMenuActivity::MenuAction 
       }
       break;
     }
+    case EpubReaderMenuActivity::MenuAction::READING_STATS: {
+      startActivityForResult(
+          std::make_unique<ReadingStatsActivity>(renderer, mappedInput, epub->getTitle(), epub->getCachePath()),
+          [this](const ActivityResult&) { requestUpdate(); });
+      break;
+    }
   }
 }
 
@@ -458,6 +493,7 @@ void EpubReaderActivity::toggleAutoPageTurn(const uint8_t selectedPageTurnOption
 
 void EpubReaderActivity::pageTurn(bool isForwardTurn) {
   if (isForwardTurn) {
+    ReadingStatsStore::getInstance().recordPageTurn();
     if (section->currentPage < section->pageCount - 1) {
       section->currentPage++;
     } else {

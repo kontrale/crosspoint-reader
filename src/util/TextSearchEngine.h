@@ -2,17 +2,18 @@
 
 #include <Epub.h>
 #include <GfxRenderer.h>
+
+#include <algorithm>
+#include <cctype>
 #include <memory>
 #include <string>
 #include <vector>
-#include <algorithm>
-#include <cctype>
 
 class GfxRenderer;
 
 /**
  * TextSearchEngine provides lightweight search functionality for EPUB content.
- * 
+ *
  * Optimized for constrained hardware:
  * - Streams through sections rather than loading entire book into memory
  * - Case-insensitive search
@@ -22,8 +23,8 @@ class GfxRenderer;
 class TextSearchEngine {
  public:
   struct SearchResult {
-    int spineIndex;           // Chapter/section index
-    int pageNumber;           // Page within the chapter
+    int spineIndex;             // Chapter/section index
+    int pageNumber;             // Page within the chapter
     std::string contextBefore;  // Text before match (up to 50 chars)
     std::string matchText;      // The matched text
     std::string contextAfter;   // Text after match (up to 50 chars)
@@ -31,11 +32,11 @@ class TextSearchEngine {
 
   explicit TextSearchEngine(const std::shared_ptr<Epub>& epub, GfxRenderer& renderer)
       : epub(epub), renderer(renderer) {}
-  
+
   /**
    * Search for a query string within the book.
    * Returns all matching results found.
-   * 
+   *
    * @param query Search text (case-insensitive)
    * @param startSpineIndex Starting spine index (searches from current chapter first for speed)
    * @return Vector of search results

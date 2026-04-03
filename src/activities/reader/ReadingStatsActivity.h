@@ -13,8 +13,8 @@
  */
 class ReadingStatsActivity final : public Activity {
  public:
-  explicit ReadingStatsActivity(GfxRenderer& renderer, MappedInputManager& mappedInput,
-                                const std::string& bookTitle, const std::string& cachePath)
+  explicit ReadingStatsActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, const std::string& bookTitle,
+                                const std::string& cachePath)
       : Activity("ReadingStats", renderer, mappedInput), bookTitle(bookTitle), cachePath(cachePath) {}
 
   void onEnter() override;

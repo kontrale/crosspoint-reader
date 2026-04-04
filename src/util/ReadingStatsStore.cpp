@@ -72,9 +72,9 @@ void ReadingStatsStore::loadBookStats() {
     if (static_cast<size_t>(n) == BOOK_STATS_SIZE && data[0] == BOOK_STATS_VERSION) {
       _bookStats.totalSecondsRead = static_cast<uint32_t>(data[1]) | (static_cast<uint32_t>(data[2]) << 8) |
                                     (static_cast<uint32_t>(data[3]) << 16) | (static_cast<uint32_t>(data[4]) << 24);
-      _bookStats.totalPagesRead   = static_cast<uint32_t>(data[5]) | (static_cast<uint32_t>(data[6]) << 8) |
-                                    (static_cast<uint32_t>(data[7]) << 16) | (static_cast<uint32_t>(data[8]) << 24);
-      _bookStats.sessionsCount    = static_cast<uint16_t>(data[9]) | (static_cast<uint16_t>(data[10]) << 8);
+      _bookStats.totalPagesRead = static_cast<uint32_t>(data[5]) | (static_cast<uint32_t>(data[6]) << 8) |
+                                  (static_cast<uint32_t>(data[7]) << 16) | (static_cast<uint32_t>(data[8]) << 24);
+      _bookStats.sessionsCount = static_cast<uint16_t>(data[9]) | (static_cast<uint16_t>(data[10]) << 8);
     }
   }
 }
@@ -94,7 +94,7 @@ void ReadingStatsStore::saveBookStats() const {
     data[6] = (_bookStats.totalPagesRead >> 8) & 0xFF;
     data[7] = (_bookStats.totalPagesRead >> 16) & 0xFF;
     data[8] = (_bookStats.totalPagesRead >> 24) & 0xFF;
-    data[9]  = _bookStats.sessionsCount & 0xFF;
+    data[9] = _bookStats.sessionsCount & 0xFF;
     data[10] = (_bookStats.sessionsCount >> 8) & 0xFF;
     f.write(data, sizeof(data));
     f.close();
@@ -111,10 +111,10 @@ void ReadingStatsStore::loadGlobalStats() {
     if (static_cast<size_t>(n) == GLOBAL_STATS_SIZE && data[0] == GLOBAL_STATS_VERSION) {
       _globalStats.totalSecondsRead = static_cast<uint32_t>(data[1]) | (static_cast<uint32_t>(data[2]) << 8) |
                                       (static_cast<uint32_t>(data[3]) << 16) | (static_cast<uint32_t>(data[4]) << 24);
-      _globalStats.totalPagesRead   = static_cast<uint32_t>(data[5]) | (static_cast<uint32_t>(data[6]) << 8) |
-                                      (static_cast<uint32_t>(data[7]) << 16) | (static_cast<uint32_t>(data[8]) << 24);
-      _globalStats.totalSessions    = static_cast<uint32_t>(data[9]) | (static_cast<uint32_t>(data[10]) << 8) |
-                                      (static_cast<uint32_t>(data[11]) << 16) | (static_cast<uint32_t>(data[12]) << 24);
+      _globalStats.totalPagesRead = static_cast<uint32_t>(data[5]) | (static_cast<uint32_t>(data[6]) << 8) |
+                                    (static_cast<uint32_t>(data[7]) << 16) | (static_cast<uint32_t>(data[8]) << 24);
+      _globalStats.totalSessions = static_cast<uint32_t>(data[9]) | (static_cast<uint32_t>(data[10]) << 8) |
+                                   (static_cast<uint32_t>(data[11]) << 16) | (static_cast<uint32_t>(data[12]) << 24);
     }
   }
 }
@@ -132,7 +132,7 @@ void ReadingStatsStore::saveGlobalStats() const {
     data[6] = (_globalStats.totalPagesRead >> 8) & 0xFF;
     data[7] = (_globalStats.totalPagesRead >> 16) & 0xFF;
     data[8] = (_globalStats.totalPagesRead >> 24) & 0xFF;
-    data[9]  = _globalStats.totalSessions & 0xFF;
+    data[9] = _globalStats.totalSessions & 0xFF;
     data[10] = (_globalStats.totalSessions >> 8) & 0xFF;
     data[11] = (_globalStats.totalSessions >> 16) & 0xFF;
     data[12] = (_globalStats.totalSessions >> 24) & 0xFF;
@@ -149,11 +149,9 @@ void ReadingStatsStore::exportCsv(const std::string& bookTitle) const {
   f.write(reinterpret_cast<const uint8_t*>(header), strlen(header));
 
   char row[256];
-  snprintf(row, sizeof(row), "book,\"%s\",%lu,%lu,%u\r\n",
-           bookTitle.c_str(),
+  snprintf(row, sizeof(row), "book,\"%s\",%lu,%lu,%u\r\n", bookTitle.c_str(),
            static_cast<unsigned long>(_bookStats.totalSecondsRead),
-           static_cast<unsigned long>(_bookStats.totalPagesRead),
-           _bookStats.sessionsCount);
+           static_cast<unsigned long>(_bookStats.totalPagesRead), _bookStats.sessionsCount);
   f.write(reinterpret_cast<const uint8_t*>(row), strlen(row));
 
   snprintf(row, sizeof(row), "global,\"All Books\",%lu,%lu,%lu\r\n",

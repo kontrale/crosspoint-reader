@@ -4,6 +4,7 @@
 #include <I18n.h>
 #include <Logging.h>
 #include <MappedInputManager.h>
+
 #include <algorithm>
 
 #include "activities/ActivityResult.h"
@@ -42,7 +43,7 @@ void EpubReaderSearchActivity::onKeyboardResult(const ActivityResult& result) {
   const auto& kb = std::get<KeyboardResult>(result.data);
   searchQuery = kb.text;
   LOG_DBG("SRCH", "Got search query: '%s'", searchQuery.c_str());
-  
+
   // Show searching state before performing potentially slow search
   currentState = UIState::SEARCHING;
   waitForConfirmRelease = true;  // Wait for Confirm to be fully released before accepting input
@@ -67,7 +68,7 @@ void EpubReaderSearchActivity::performSearch() {
     selectedResultIndex = 0;
     LOG_DBG("SRCH", "Found %zu results", searchResults.size());
   }
-  
+
   requestUpdate();
 }
 
@@ -85,7 +86,7 @@ void EpubReaderSearchActivity::handleInput() {
     }
     return;
   }
-  
+
   switch (currentState) {
     case UIState::SEARCHING: {
       // Allow user to cancel search with Back button
@@ -94,7 +95,7 @@ void EpubReaderSearchActivity::handleInput() {
       }
       break;
     }
-    
+
     case UIState::SHOWING_RESULTS: {
       if (mappedInput.wasReleased(MappedInputManager::Button::Up)) {
         if (selectedResultIndex > 0) {
@@ -141,8 +142,8 @@ void EpubReaderSearchActivity::renderResults(RenderLock& lock) {
   const int maxVisible = (renderer.getScreenHeight() - y - 40) / itemHeight;
 
   // Scroll: keep selectedResultIndex visible
-  const int firstVisible = std::max(0, std::min(selectedResultIndex - maxVisible + 1,
-                                                 static_cast<int>(searchResults.size()) - maxVisible));
+  const int firstVisible =
+      std::max(0, std::min(selectedResultIndex - maxVisible + 1, static_cast<int>(searchResults.size()) - maxVisible));
   const int lastVisible = std::min(firstVisible + maxVisible, static_cast<int>(searchResults.size()));
 
   for (int i = firstVisible; i < lastVisible; ++i) {
@@ -175,10 +176,10 @@ void EpubReaderSearchActivity::renderEmptyResults(RenderLock& lock) {
   renderer.clearScreen();
 
   renderer.drawText(UI_12_FONT_ID, 20, 50, "No Matches", true);
-  
+
   std::string queryLine = "Query: " + searchQuery;
   renderer.drawText(UI_10_FONT_ID, 20, 100, queryLine.c_str(), false);
-  
+
   renderer.drawText(UI_10_FONT_ID, 20, 150, "No matches found in this chapter.", false);
   renderer.drawText(UI_10_FONT_ID, 20, 175, "Try searching other chapters or", false);
   renderer.drawText(UI_10_FONT_ID, 20, 200, "read more to enable full-text search.", false);
@@ -197,17 +198,17 @@ void EpubReaderSearchActivity::loop() {
     searchPerformed = true;
     LOG_DBG("SRCH", "Search completed, found %zu results", searchResults.size());
   }
-  
+
   handleInput();
 }
 void EpubReaderSearchActivity::renderSearching(RenderLock& lock) {
   renderer.clearScreen();
 
   renderer.drawText(UI_12_FONT_ID, 20, 100, "Searching...", true);
-  
+
   std::string queryLine = "Query: " + searchQuery;
   renderer.drawText(UI_10_FONT_ID, 20, 150, queryLine.c_str(), false);
-  
+
   renderer.drawText(UI_10_FONT_ID, 20, 200, "Press Back to cancel", false);
 
   const auto labels = mappedInput.mapLabels(tr(STR_BACK), "", "", "");

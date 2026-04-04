@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Epub.h>
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -10,7 +11,7 @@
 
 /**
  * EpubReaderSearchActivity provides in-book search functionality.
- * 
+ *
  * Users can:
  * - Enter a search query (using the keyboard activity)
  * - View search results with chapter/page information
@@ -21,7 +22,9 @@ class EpubReaderSearchActivity final : public Activity {
  public:
   explicit EpubReaderSearchActivity(GfxRenderer& renderer, MappedInputManager& mappedInput,
                                     const std::shared_ptr<Epub>& epub, int currentSpineIdx = 0)
-      : Activity("EpubReaderSearch", renderer, mappedInput), epub(epub), searchEngine(epub, renderer),
+      : Activity("EpubReaderSearch", renderer, mappedInput),
+        epub(epub),
+        searchEngine(epub, renderer),
         currentSpineIndex(currentSpineIdx) {}
 
   void onEnter() override;
@@ -31,9 +34,9 @@ class EpubReaderSearchActivity final : public Activity {
 
  private:
   enum class UIState {
-    SEARCHING,         // Search in progress
-    SHOWING_RESULTS,   // Showing list of results
-    EMPTY_RESULTS      // No results found
+    SEARCHING,        // Search in progress
+    SHOWING_RESULTS,  // Showing list of results
+    EMPTY_RESULTS     // No results found
   };
 
   std::shared_ptr<Epub> epub;
@@ -43,7 +46,7 @@ class EpubReaderSearchActivity final : public Activity {
   std::string searchQuery;
   std::vector<TextSearchEngine::SearchResult> searchResults;
   int selectedResultIndex = 0;
-  bool searchPerformed = false;  // Track if search has been executed
+  bool searchPerformed = false;        // Track if search has been executed
   bool waitForConfirmRelease = false;  // Wait for Confirm button to be physically released before accepting input
 
   TextSearchEngine searchEngine;

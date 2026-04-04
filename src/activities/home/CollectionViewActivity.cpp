@@ -166,8 +166,7 @@ void CollectionViewActivity::render(RenderLock&&) {
     } else {
       const auto& paths = col->bookPaths;
       GUI.drawList(
-          renderer, Rect{0, contentTop, pageWidth, contentHeight},
-          static_cast<int>(paths.size()), viewSelector,
+          renderer, Rect{0, contentTop, pageWidth, contentHeight}, static_cast<int>(paths.size()), viewSelector,
           [&paths](int i) {
             const std::string& p = paths[i];
             const size_t slash = p.find_last_of('/');
@@ -192,11 +191,9 @@ void CollectionViewActivity::render(RenderLock&&) {
       renderer.drawText(UI_10_FONT_ID, metrics.contentSidePadding, contentTop + 20, tr(STR_NO_RECENT_BOOKS));
     } else {
       GUI.drawList(
-          renderer, Rect{0, contentTop, pageWidth, contentHeight},
-          static_cast<int>(addCandidates.size()), addSelector,
+          renderer, Rect{0, contentTop, pageWidth, contentHeight}, static_cast<int>(addCandidates.size()), addSelector,
           [this](int i) { return addCandidates[i].title.empty() ? addCandidates[i].path : addCandidates[i].title; },
-          [this](int i) { return addCandidates[i].author; },
-          nullptr);
+          [this](int i) { return addCandidates[i].author; }, nullptr);
     }
 
     const auto labels = mappedInput.mapLabels(tr(STR_BACK), tr(STR_SELECT), "", tr(STR_DIR_UP));

@@ -14,8 +14,7 @@
 inline const std::vector<SettingInfo>& getSettingsList() {
   static const std::vector<SettingInfo> list = {
       // --- Display ---
-      SettingInfo::Toggle(StrId::STR_NIGHT_MODE, &CrossPointSettings::nightMode, "nightMode",
-                          StrId::STR_CAT_DISPLAY),
+      SettingInfo::Toggle(StrId::STR_NIGHT_MODE, &CrossPointSettings::nightMode, "nightMode", StrId::STR_CAT_DISPLAY),
       SettingInfo::Enum(StrId::STR_SLEEP_SCREEN, &CrossPointSettings::sleepScreen,
                         {StrId::STR_DARK, StrId::STR_LIGHT, StrId::STR_CUSTOM, StrId::STR_COVER, StrId::STR_NONE_OPT,
                          StrId::STR_COVER_CUSTOM},
